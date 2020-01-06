@@ -8,23 +8,20 @@ public class LoadMoreDelegate {
 
     private final LoadMoreSubject mLoadMoreSubject;
 
-
     public LoadMoreDelegate(LoadMoreSubject loadMoreSubject) {
         mLoadMoreSubject = loadMoreSubject;
     }
-
 
     public void attach(RecyclerView recyclerView) {
         final LinearLayoutManager linear = (LinearLayoutManager) recyclerView.getLayoutManager();
         recyclerView.addOnScrollListener(new EndlessScrollListener(linear, mLoadMoreSubject));
     }
 
-
     public interface LoadMoreSubject {
         boolean isLoading();
+        boolean isLoadingComplete();
         void onLoadMore();
     }
-
 
     private static class EndlessScrollListener extends RecyclerView.OnScrollListener {
 
@@ -32,16 +29,14 @@ public class LoadMoreDelegate {
         private final LinearLayoutManager mLayoutManager;
         private final LoadMoreSubject mLoadMoreSubject;
 
-
         public EndlessScrollListener(LinearLayoutManager layoutManager, LoadMoreSubject loadMoreSubject) {
             mLayoutManager = layoutManager;
             mLoadMoreSubject = loadMoreSubject;
         }
 
-
         @Override
         public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-            if (dy < 0 || mLoadMoreSubject.isLoading()) {
+            if (dy < 0 || mLoadMoreSubject.isLoading() || mLoadMoreSubject.isLoadingComplete()) {
                 return;
             }
             final int itemCount = mLayoutManager.getItemCount();

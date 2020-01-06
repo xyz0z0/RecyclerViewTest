@@ -12,6 +12,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements SwipeRefreshDelegate.RefreshSubject {
 
+    boolean isLoading = false;
     private SwipeRefreshLayout swipeRefreshLayout;
     private RecyclerView recyclerView;
     private List<FoodItem> foodItemList;
@@ -21,7 +22,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshDeleg
     private Button btnAddEmpty;
     private SwipeRefreshDelegate swipeRefreshDelegate;
     private LoadMoreDelegate loadMoreDelegate;
-
+    private int count = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,8 +59,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshDeleg
         });
     }
 
-    boolean isLoading = false;
-
     private void initLoadMore() {
         loadMoreDelegate = new LoadMoreDelegate(new LoadMoreDelegate.LoadMoreSubject() {
 
@@ -67,6 +66,9 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshDeleg
                 return isLoading;
             }
 
+            @Override public boolean isLoadingComplete() {
+                return foodAdapter.getLoadComplete();
+            }
 
             @Override public void onLoadMore() {
                 Log.d("cxg", "onLoadMore");
@@ -76,20 +78,25 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshDeleg
         loadMoreDelegate.attach(recyclerView);
     }
 
-    private int count = 0;
-
-    private void loadMoreData(){
+    private void loadMoreData() {
         count++;
-        if (count > 5){
+        if (count > 3) {
             isLoading = false;
-
             return;
         }
         isLoading = true;
         new Thread(new Runnable() {
             @Override public void run() {
+                if (count == 3) {
+                    runOnUiThread(new Runnable() {
+                        @Override public void run() {
+                            foodAdapter.setLoadComplete(true);
+                        }
+                    });
+                    return;
+                }
                 try {
-                    Thread.sleep(2000);
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -103,7 +110,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshDeleg
         }).start();
     }
 
-
     private List<FoodItem> getNewFoods() {
         List<FoodItem> items = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
@@ -115,19 +121,16 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshDeleg
         return items;
     }
 
-
     private void initSwipeRefresh() {
         swipeRefreshDelegate = new SwipeRefreshDelegate(this);
         swipeRefreshDelegate.attach(swipeRefreshLayout);
     }
-
 
     private void initView() {
         swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
         recyclerView = findViewById(R.id.recycler_view);
         btnLoadData = findViewById(R.id.btn_load_data);
     }
-
 
     @Override public void refresh() {
         Log.d("cxg", "onRefresh");

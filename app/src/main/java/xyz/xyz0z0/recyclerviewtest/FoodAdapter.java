@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import xyz.xyz0z0.baseadapter.BaseRecyclerViewAdapter;
 
 public class FoodAdapter extends BaseRecyclerViewAdapter<FoodItem> {
 
@@ -13,32 +14,28 @@ public class FoodAdapter extends BaseRecyclerViewAdapter<FoodItem> {
 
     }
 
-
     @Override protected int getItemType(int position) {
         return 0;
     }
 
-
-    @Override void bindHolder(@NonNull RecyclerView.ViewHolder holder, FoodItem item) {
+    @Override protected void bindHolder(@NonNull RecyclerView.ViewHolder holder, Object item) {
         ViewHolder viewHolder = (ViewHolder) holder;
+        FoodItem foodItem = (FoodItem)item;
         viewHolder.tvIndex.setText(String.valueOf(holder.getAdapterPosition()));
-        viewHolder.tvTitle.setText(item.getName());
-        viewHolder.tvDesc.setText(item.getDesc());
+        viewHolder.tvTitle.setText(foodItem.getName());
+        viewHolder.tvDesc.setText(foodItem.getDesc());
     }
 
-
-    @Override RecyclerView.ViewHolder createHolder(@NonNull ViewGroup parent, int viewType) {
+    @Override protected RecyclerView.ViewHolder createHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_food, parent, false);
         return new ViewHolder(view);
     }
-
 
     class ViewHolder extends RecyclerView.ViewHolder {
 
         private TextView tvTitle;
         private TextView tvDesc;
         private TextView tvIndex;
-
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
