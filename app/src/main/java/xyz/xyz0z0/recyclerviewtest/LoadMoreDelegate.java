@@ -19,13 +19,13 @@ public class LoadMoreDelegate {
 
     public interface LoadMoreSubject {
         boolean isLoading();
-        boolean isLoadingComplete();
         void onLoadMore();
+        void addLoading();
     }
 
     private static class EndlessScrollListener extends RecyclerView.OnScrollListener {
 
-        private static final int VISIBLE_THRESHOLD = 6;
+        private static final int VISIBLE_THRESHOLD = 2;
         private final LinearLayoutManager mLayoutManager;
         private final LoadMoreSubject mLoadMoreSubject;
 
@@ -36,8 +36,9 @@ public class LoadMoreDelegate {
 
         @Override
         public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+            mLoadMoreSubject.addLoading();
             Log.d("cxg", "onScrolled");
-            if (dy < 0 || mLoadMoreSubject.isLoading() || mLoadMoreSubject.isLoadingComplete()) {
+            if (dy < 0 || mLoadMoreSubject.isLoading()) {
                 return;
             }
             final int itemCount = mLayoutManager.getItemCount();

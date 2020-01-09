@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshDeleg
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(foodAdapter);
         btnLoadData.setOnClickListener(v -> {
+
             foodAdapter.setData(getNewFoods());
             recyclerView.scheduleLayoutAnimation();
         });
@@ -69,13 +70,12 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshDeleg
 
     private void initLoadMore() {
         loadMoreDelegate = new LoadMoreDelegate(new LoadMoreDelegate.LoadMoreSubject() {
+            @Override public void addLoading() {
+                foodAdapter.setShowLoading(true);
+            }
 
             @Override public boolean isLoading() {
                 return isLoading;
-            }
-
-            @Override public boolean isLoadingComplete() {
-                return foodAdapter.getLoadComplete();
             }
 
             @Override public void onLoadMore() {
@@ -88,18 +88,14 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshDeleg
 
     private void loadMoreData() {
         count++;
-        if (count >= 4) {
-            isLoading = false;
-            return;
-        }
         isLoading = true;
         new Thread(new Runnable() {
             @Override public void run() {
-                if (count >= 3) {
+                if (count >= 4) {
                     runOnUiThread(new Runnable() {
                         @Override public void run() {
-                            Log.d("cxg", "setLoadComplete");
-                            foodAdapter.setLoadComplete(true);
+                            Log.d("cxg", "setShowLoading");
+                            foodAdapter.setShowLoading(false);
                             isLoading = false;
                         }
                     });
@@ -122,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshDeleg
 
     private List<FoodItem> getNewFoods() {
         List<FoodItem> items = new ArrayList<>();
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 13; i++) {
             FoodItem item = new FoodItem();
             item.setName("这是水果 " + i);
             item.setDesc("这是 " + i + " 号水果的详情");
@@ -144,7 +140,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshDeleg
 
     @Override public void refresh() {
         count = 1;
-        foodAdapter.setLoadComplete(false);
         Log.d("cxg", "onRefresh");
         new Thread(new Runnable() {
             @Override public void run() {

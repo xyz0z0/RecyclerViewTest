@@ -14,7 +14,7 @@ public abstract class BaseRecyclerViewAdapter<T> extends RecyclerView.Adapter<Re
     private int LOAD_MORE_TYPE = 100;
     private int LOAD_COMPLETE_TYPE = 101;
     private List<T> items = new ArrayList<>();
-    private boolean isLoadComplete = false;
+    private boolean showLoading = true;
 
     public void setData(List<T> data) {
         items.clear();
@@ -28,13 +28,15 @@ public abstract class BaseRecyclerViewAdapter<T> extends RecyclerView.Adapter<Re
         notifyItemRangeInserted(lastPosition, data.size());
     }
 
-    public boolean getLoadComplete() {
-        return isLoadComplete;
+    public boolean getShowLoading() {
+        return showLoading;
     }
 
-    public void setLoadComplete(boolean b) {
-        isLoadComplete = b;
-        notifyItemChanged(getItemCount() - 1);
+    public void setShowLoading(boolean b) {
+        showLoading = b;
+        if (!showLoading) {
+            notifyItemChanged(getItemCount() - 1);
+        }
     }
 
     @NonNull @Override public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -61,7 +63,7 @@ public abstract class BaseRecyclerViewAdapter<T> extends RecyclerView.Adapter<Re
 
     @Override public int getItemViewType(int position) {
         if (position >= getItemCount() - 1) {
-            return isLoadComplete ? LOAD_COMPLETE_TYPE : LOAD_MORE_TYPE;
+            return showLoading ? LOAD_MORE_TYPE : LOAD_COMPLETE_TYPE;
         } else {
             return getItemType(position);
         }
