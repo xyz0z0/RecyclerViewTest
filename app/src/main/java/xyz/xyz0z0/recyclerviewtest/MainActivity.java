@@ -2,8 +2,6 @@ package xyz.xyz0z0.recyclerviewtest;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.view.animation.AnimationUtils;
-import android.view.animation.LayoutAnimationController;
 import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -100,14 +98,15 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshDeleg
                 if (count >= 3) {
                     runOnUiThread(new Runnable() {
                         @Override public void run() {
-                            Log.d("cxg","setLoadComplete");
+                            Log.d("cxg", "setLoadComplete");
                             foodAdapter.setLoadComplete(true);
+                            isLoading = false;
                         }
                     });
                     return;
                 }
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -144,11 +143,13 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshDeleg
     }
 
     @Override public void refresh() {
+        count = 1;
+        foodAdapter.setLoadComplete(false);
         Log.d("cxg", "onRefresh");
         new Thread(new Runnable() {
             @Override public void run() {
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -156,9 +157,9 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshDeleg
                     @Override public void run() {
                         foodAdapter.setData(getNewFoods());
                         recyclerView.scheduleLayoutAnimation();
+                        swipeRefreshLayout.setRefreshing(false);
                     }
                 });
-                swipeRefreshLayout.setRefreshing(false);
             }
         }).start();
     }

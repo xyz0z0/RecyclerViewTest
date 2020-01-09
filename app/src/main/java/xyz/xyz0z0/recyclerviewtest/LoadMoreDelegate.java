@@ -1,5 +1,6 @@
 package xyz.xyz0z0.recyclerviewtest;
 
+import android.util.Log;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -35,16 +36,17 @@ public class LoadMoreDelegate {
 
         @Override
         public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+            Log.d("cxg", "onScrolled");
             if (dy < 0 || mLoadMoreSubject.isLoading() || mLoadMoreSubject.isLoadingComplete()) {
                 return;
             }
             final int itemCount = mLayoutManager.getItemCount();
             final int lastVisiblePosition = mLayoutManager.findLastCompletelyVisibleItemPosition();
             final boolean isBottom = (lastVisiblePosition >= itemCount - VISIBLE_THRESHOLD);
+            Log.d("cxg", itemCount + " - " + lastVisiblePosition + " - " + isBottom);
             if (isBottom) {
                 mLoadMoreSubject.onLoadMore();
             }
         }
     }
-
 }

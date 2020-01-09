@@ -13,19 +13,16 @@ public abstract class BaseRecyclerViewAdapter<T> extends RecyclerView.Adapter<Re
 
     private int LOAD_MORE_TYPE = 100;
     private int LOAD_COMPLETE_TYPE = 101;
-    private List<T> items;
+    private List<T> items = new ArrayList<>();
     private boolean isLoadComplete = false;
 
-    public void setData(List<T> items) {
-        this.items = items;
+    public void setData(List<T> data) {
+        items.clear();
+        items.addAll(data);
         notifyDataSetChanged();
-
     }
 
     public void addData(List<T> data) {
-        if (items == null) {
-            items = new ArrayList<>();
-        }
         int lastPosition = items.size();
         this.items.addAll(data);
         notifyItemRangeInserted(lastPosition, data.size());
