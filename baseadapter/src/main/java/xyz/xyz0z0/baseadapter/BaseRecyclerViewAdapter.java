@@ -19,6 +19,7 @@ public abstract class BaseRecyclerViewAdapter<T> extends RecyclerView.Adapter<Re
     public void setData(List<T> items) {
         this.items = items;
         notifyDataSetChanged();
+
     }
 
     public void addData(List<T> data) {
@@ -36,6 +37,7 @@ public abstract class BaseRecyclerViewAdapter<T> extends RecyclerView.Adapter<Re
 
     public void setLoadComplete(boolean b) {
         isLoadComplete = b;
+        notifyItemChanged(getItemCount() - 1);
     }
 
     @NonNull @Override public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

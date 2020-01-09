@@ -1,6 +1,5 @@
 package xyz.xyz0z0.recyclerviewtest;
 
-import android.util.Log;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -45,7 +44,6 @@ public class LoadMoreDelegate {
             if (isBottom) {
                 mLoadMoreSubject.onLoadMore();
             }
-            Log.d("cxg", "onScrolled " + itemCount + " " + lastVisiblePosition + " " + isBottom);
         }
     }
 

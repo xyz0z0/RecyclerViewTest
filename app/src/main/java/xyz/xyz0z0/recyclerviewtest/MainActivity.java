@@ -2,6 +2,8 @@ package xyz.xyz0z0.recyclerviewtest;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LayoutAnimationController;
 import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -39,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshDeleg
         recyclerView.setAdapter(foodAdapter);
         btnLoadData.setOnClickListener(v -> {
             foodAdapter.setData(getNewFoods());
+            recyclerView.scheduleLayoutAnimation();
         });
         btnAddData = findViewById(R.id.btn_add_data);
         btnAddData.setOnClickListener(v -> {
@@ -56,7 +59,14 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshDeleg
         btnAddEmpty.setOnClickListener(v -> {
             List<FoodItem> items = new ArrayList<>();
             foodAdapter.setData(items);
+            recyclerView.scheduleLayoutAnimation();
         });
+
+        // LayoutAnimationController controller =
+        //     AnimationUtils.loadLayoutAnimation(this, R.anim.layout_animation_fall_down);
+        //
+        //
+        // recyclerView.setItemAnimator(controller);
     }
 
     private void initLoadMore() {
@@ -80,23 +90,24 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshDeleg
 
     private void loadMoreData() {
         count++;
-        if (count > 3) {
+        if (count >= 4) {
             isLoading = false;
             return;
         }
         isLoading = true;
         new Thread(new Runnable() {
             @Override public void run() {
-                if (count == 3) {
+                if (count >= 3) {
                     runOnUiThread(new Runnable() {
                         @Override public void run() {
+                            Log.d("cxg","setLoadComplete");
                             foodAdapter.setLoadComplete(true);
                         }
                     });
                     return;
                 }
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(100);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -112,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshDeleg
 
     private List<FoodItem> getNewFoods() {
         List<FoodItem> items = new ArrayList<>();
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 1; i++) {
             FoodItem item = new FoodItem();
             item.setName("这是水果 " + i);
             item.setDesc("这是 " + i + " 号水果的详情");
@@ -144,6 +155,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshDeleg
                 runOnUiThread(new Runnable() {
                     @Override public void run() {
                         foodAdapter.setData(getNewFoods());
+                        recyclerView.scheduleLayoutAnimation();
                     }
                 });
                 swipeRefreshLayout.setRefreshing(false);
