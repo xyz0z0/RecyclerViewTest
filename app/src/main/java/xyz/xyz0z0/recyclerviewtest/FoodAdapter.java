@@ -8,7 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import xyz.xyz0z0.baseadapter.BaseRecyclerViewAdapter;
 
-public class FoodAdapter extends BaseRecyclerViewAdapter<FoodItem> {
+public class FoodAdapter extends BaseRecyclerViewAdapter<FruitItem> {
 
     public FoodAdapter() {
 
@@ -20,10 +20,10 @@ public class FoodAdapter extends BaseRecyclerViewAdapter<FoodItem> {
 
     @Override protected void bindHolder(@NonNull RecyclerView.ViewHolder holder, Object item) {
         ViewHolder viewHolder = (ViewHolder) holder;
-        FoodItem foodItem = (FoodItem)item;
+        FruitItem fruitItem = (FruitItem)item;
         viewHolder.tvIndex.setText(String.valueOf(holder.getAdapterPosition()));
-        viewHolder.tvTitle.setText(foodItem.getName());
-        viewHolder.tvDesc.setText(foodItem.getDesc());
+        viewHolder.tvTitle.setText(fruitItem.getName());
+        viewHolder.tvDesc.setText(fruitItem.getDesc());
     }
 
     @Override protected RecyclerView.ViewHolder createHolder(@NonNull ViewGroup parent, int viewType) {
@@ -39,7 +39,7 @@ public class FoodAdapter extends BaseRecyclerViewAdapter<FoodItem> {
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvTitle = itemView.findViewById(R.id.tv_name);
+            tvTitle = itemView.findViewById(R.id.tvTitle);
             tvDesc = itemView.findViewById(R.id.tv_desc);
             tvIndex = itemView.findViewById(R.id.tv_index);
         }

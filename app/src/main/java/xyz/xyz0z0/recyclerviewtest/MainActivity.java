@@ -1,28 +1,34 @@
 package xyz.xyz0z0.recyclerviewtest;
 
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import com.blankj.utilcode.util.ThreadUtils;
+import com.drakeet.multitype.MultiTypeAdapter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements SwipeRefreshDelegate.RefreshSubject {
+public class MainActivity extends AppCompatActivity {
 
-    boolean isLoading = false;
-    private SwipeRefreshLayout swipeRefreshLayout;
+    private boolean isLoading = false;
+    private boolean loadMoreEnable = true;
     private RecyclerView recyclerView;
-    private List<FoodItem> foodItemList;
+    private List<FruitItem> fruitItemList;
     private FoodAdapter foodAdapter;
     private Button btnLoadData;
     private Button btnAddData;
     private Button btnAddEmpty;
     private SwipeRefreshDelegate swipeRefreshDelegate;
     private LoadMoreDelegate loadMoreDelegate;
-    private int count = 0;
+    private int pageIndex = 1;
+
+    private MultiTypeAdapter adapter;
+    private ArrayList<Object> items;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,96 +36,130 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshDeleg
         setContentView(R.layout.activity_main);
         initView();
         initSwipeRefresh();
+        adapter = new MultiTypeAdapter();
+        items = new ArrayList<>();
 
-        foodItemList = new ArrayList<>();
+        adapter.register(FruitItem.class, new FruitViewBinder());
+        adapter.register(ImageItem.class, new ImageViewBinder());
+        adapter.register(Loading.class, new LoadingViewBinder());
 
-        foodAdapter = new FoodAdapter();
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(linearLayoutManager);
-        recyclerView.setAdapter(foodAdapter);
-        btnLoadData.setOnClickListener(v -> {
+        recyclerView.setAdapter(adapter);
 
-            foodAdapter.setData(getNewFoods());
-            recyclerView.scheduleLayoutAnimation();
-        });
-        btnAddData = findViewById(R.id.btn_add_data);
-        btnAddData.setOnClickListener(v -> {
-            List<FoodItem> items = new ArrayList<>();
-            for (int i = 0; i < 1; i++) {
-                FoodItem item = new FoodItem();
-                item.setName("这是新加的水果 " + i);
-                item.setDesc("这是新加的 " + i + " 号水果的详情");
-                items.add(item);
-            }
-            foodAdapter.addData(items);
-        });
-        initLoadMore();
-        btnAddEmpty = findViewById(R.id.btn_add_empty);
-        btnAddEmpty.setOnClickListener(v -> {
-            List<FoodItem> items = new ArrayList<>();
-            foodAdapter.setData(items);
-            recyclerView.scheduleLayoutAnimation();
-        });
-
-        // LayoutAnimationController controller =
-        //     AnimationUtils.loadLayoutAnimation(this, R.anim.layout_animation_fall_down);
         //
-        //
-        // recyclerView.setItemAnimator(controller);
-    }
-
-    private void initLoadMore() {
         loadMoreDelegate = new LoadMoreDelegate(new LoadMoreDelegate.LoadMoreSubject() {
-            @Override public void addLoading() {
-                foodAdapter.setShowLoading(true);
+            @Override public boolean isLoading() {
+                if (loadMoreEnable) {
+                    return isLoading;
+                } else {
+                    return true;
+                }
+
             }
 
-            @Override public boolean isLoading() {
-                return isLoading;
-            }
 
             @Override public void onLoadMore() {
                 Log.d("cxg", "onLoadMore");
+                isLoading = true;
                 loadMoreData();
             }
         });
         loadMoreDelegate.attach(recyclerView);
+
+        adapter.setItems(items);
+        refresh();
     }
 
+
+    private void refresh() {
+        swipeRefreshDelegate.setRefresh(true);
+        ThreadUtils.executeByIo(new ThreadUtils.SimpleTask<List<ImageItem>>() {
+            @Override public List<ImageItem> doInBackground() throws Throwable {
+                pageIndex = 1;
+                isLoading = false;
+                loadMoreEnable = true;
+                // loading.setShow(loadMoreEnable);
+                // adapter.notifyItemChanged(startPos);
+                SystemClock.sleep(1000);
+                return getList(pageIndex);
+            }
+
+
+            @Override public void onSuccess(List<ImageItem> result) {
+                Log.d("cxg", "refresh data start");
+                swipeRefreshDelegate.setRefresh(false);
+                items.clear();
+                items.addAll(result);
+
+                adapter.notifyDataSetChanged();
+                Log.d("cxg", "refresh data end");
+            }
+        });
+    }
+
+
+    private List<ImageItem> getList(int pageIndex) {
+        List<ImageItem> imageItems = new ArrayList<>();
+        if (pageIndex == 12) {
+            return imageItems;
+        }
+        for (int i = 0; i < 1; i++) {
+            ImageItem item = new ImageItem();
+            item.setTitle("第" + pageIndex + "页 " + "标题 " + (i + 1));
+            imageItems.add(item);
+        }
+        return imageItems;
+    }
+
+
     private void loadMoreData() {
-        count++;
-        isLoading = true;
         new Thread(new Runnable() {
             @Override public void run() {
-                if (count >= 4) {
-                    runOnUiThread(new Runnable() {
-                        @Override public void run() {
-                            Log.d("cxg", "setShowLoading");
-                            foodAdapter.setShowLoading(false);
-                            isLoading = false;
+                runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        if (items.size() > 0 && !(items.get(items.size() - 1) instanceof Loading)) {
+                            items.add(new Loading(true));
+                            adapter.notifyItemInserted(items.size());
                         }
-                    });
-                    return;
-                }
+                    }
+                });
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(1500);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+                List<ImageItem> images = getList(pageIndex + 1);
                 runOnUiThread(new Runnable() {
                     @Override public void run() {
-                        foodAdapter.addData(getNewFoods());
+                        int startPos = items.size() - 1;
+                        if (images.size() == 0) {
+                            // 没有更多数据了
+                            isLoading = false;
+                            loadMoreEnable = false;
+                            ((Loading) items.get(startPos)).setShow(false);
+                            adapter.notifyItemChanged(startPos);
+                            return;
+                        }
+                        // items.remove(startPos);
+                        // adapter.notifyItemRemoved(startPos);
+                        items.addAll(startPos, images);
+                        adapter.notifyItemRangeInserted(startPos, images.size());
+                        // adapter.notifyItemRangeInserted(startPos, images.size());
                         isLoading = false;
+                        pageIndex++;
                     }
                 });
             }
         }).start();
+
     }
 
-    private List<FoodItem> getNewFoods() {
-        List<FoodItem> items = new ArrayList<>();
+
+    private List<FruitItem> getNewFoods() {
+        List<FruitItem> items = new ArrayList<>();
         for (int i = 0; i < 13; i++) {
-            FoodItem item = new FoodItem();
+            FruitItem item = new FruitItem();
             item.setName("这是水果 " + i);
             item.setDesc("这是 " + i + " 号水果的详情");
             items.add(item);
@@ -127,35 +167,21 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshDeleg
         return items;
     }
 
+
     private void initSwipeRefresh() {
-        swipeRefreshDelegate = new SwipeRefreshDelegate(this);
-        swipeRefreshDelegate.attach(swipeRefreshLayout);
+        swipeRefreshDelegate = new SwipeRefreshDelegate(new SwipeRefreshDelegate.RefreshSubject() {
+            @Override public void onRefresh() {
+                Log.d("cxg", "onRefresh");
+                refresh();
+            }
+        });
+        swipeRefreshDelegate.attach(findViewById(R.id.srlMain));
     }
 
+
     private void initView() {
-        swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
-        recyclerView = findViewById(R.id.recycler_view);
+        recyclerView = findViewById(R.id.rvMain);
         btnLoadData = findViewById(R.id.btn_load_data);
     }
 
-    @Override public void refresh() {
-        count = 1;
-        Log.d("cxg", "onRefresh");
-        new Thread(new Runnable() {
-            @Override public void run() {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                runOnUiThread(new Runnable() {
-                    @Override public void run() {
-                        foodAdapter.setData(getNewFoods());
-                        recyclerView.scheduleLayoutAnimation();
-                        swipeRefreshLayout.setRefreshing(false);
-                    }
-                });
-            }
-        }).start();
-    }
 }

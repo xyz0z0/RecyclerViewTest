@@ -1,6 +1,6 @@
 package xyz.xyz0z0.recyclerviewtest;
 
-public class FoodItem {
+public class FruitItem {
 
     private String name;
     private String desc;
